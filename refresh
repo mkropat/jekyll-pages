@@ -1,0 +1,24 @@
+#!/bin/bash
+
+set -euo pipefail
+
+./check-for-repos
+
+for d in *; do
+  if [[ ! -d "$d" ]]; then
+    continue
+  fi
+
+  (
+    cd "$d"
+    git fetch
+    if [[ $(git rev-parse HEAD) != $(git rev-parse origin/gh-pages) ]]; then
+      git checkout origin/gh-pages
+      git reset --hard HEAD
+      git clean -d --force
+    fi
+  )
+
+  ./build-site "$d"
+done
+
