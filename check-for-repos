@@ -10,6 +10,12 @@ curl -s -u "$(cat ~/.github-creds)" "https://api.github.com/user/repos?type=owne
     fi
     echo "Checking $name"
 
+    case "$name" in
+      *.github.io)
+        git clone -- "$git_url"
+        continue
+    esac
+
     list_branches_url=$(printf '%s\n' "$branches_url" | sed -E 's/\{.*\}//')
     if curl -s -u "$(cat ~/.github-creds)" -- "$list_branches_url" |
       jq -r '.[].name' |

@@ -2,6 +2,18 @@
 
 set -euo pipefail
 
+switch_to_branch() {
+  (
+    cd "$d"
+    git fetch
+    if [[ $(git rev-parse HEAD) != $(git rev-parse "origin/$1") ]]; then
+      git checkout "origin/$1"
+      git reset --hard HEAD
+      git clean -d --force
+    fi
+  )
+}
+
 ./check-for-repos
 
 for d in *; do
@@ -9,16 +21,15 @@ for d in *; do
     continue
   fi
 
-  (
-    cd "$d"
-    git fetch
-    if [[ $(git rev-parse HEAD) != $(git rev-parse origin/gh-pages) ]]; then
-      git checkout origin/gh-pages
-      git reset --hard HEAD
-      git clean -d --force
-    fi
-  )
-
-  ./build-site "$d"
+  case "$d" in
+    *.github.io)
+      switch_to_branch "master"
+      ./build-site -r "$d"
+    ;;
+    *)
+      switch_to_branch "gh-pages"
+      ./build-site "$d"
+    ;;
+  esac
 done
 
