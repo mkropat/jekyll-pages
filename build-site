@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-if [[ -z "$PAGES_DEPLOY_URL" ]]; then
+if [[ -z "${PAGES_DEPLOY_URL-}" ]]; then
   echo 'Error: must set $PAGES_DEPLOY_URL' >&2
   exit 1
 fi
