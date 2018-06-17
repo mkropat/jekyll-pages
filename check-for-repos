@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-curl -s -u "$(cat ~/.github-creds)" "https://api.github.com/user/repos?type=owner&per_page=100" |
+curl --silent --user "$(cat ~/.github-creds)" -- "https://api.github.com/user/repos?type=owner&per_page=100" |
   jq -r '.[] | ([.name, .branches_url, .git_url] | join(" "))' |
   while read -r name branches_url git_url rest; do
     if [[ -f ".$name" || -d "$name" ]]; then
@@ -17,7 +17,7 @@ curl -s -u "$(cat ~/.github-creds)" "https://api.github.com/user/repos?type=owne
     esac
 
     list_branches_url=$(printf '%s\n' "$branches_url" | sed -E 's/\{.*\}//')
-    if curl -s -u "$(cat ~/.github-creds)" -- "$list_branches_url" |
+    if curl --silent --user "$(cat ~/.github-creds)" -- "$list_branches_url" |
       jq -r '.[].name' |
       grep -Eq '^(pages|gh-pages)$'; then
       git clone -- "$git_url"
