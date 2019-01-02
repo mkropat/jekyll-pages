@@ -10,6 +10,7 @@ switch_to_branch() {
       git checkout "origin/$1"
       git reset --hard HEAD
       git clean -d --force
+      git submodule update --init
     fi
   )
 }
