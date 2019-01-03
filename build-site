@@ -1,43 +1,40 @@
 #!/bin/bash
 
 set -euo pipefail
+ 
+build_repo() {
+  if [[ -f "$1/.nojekyll" ]]; then
+    publish_dir "$1" "$2"
+  else
+    (
+      cd "$1"
+      mkdir -p _site
+      docker run --label=jekyll --volume=$PWD:/srv/jekyll jekyll/builder jekyll build
+    )
+    publish_dir "$1/_site/" "$2"
+  fi
+}
 
-if [[ -z "${PAGES_DEPLOY_URL-}" ]]; then
-  echo 'Error: must set $PAGES_DEPLOY_URL' >&2
+publish_dir() {
+  mkdir -p "$2"
+  rsync --archive --exclude=".*" --verbose -- "$1" "$2"
+}
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage: build-site DEST" >&2;
   exit 1
 fi
 
-dest_is_root=
-
-while getopts r opt; do
-  case "$opt" in
-    r) dest_is_root=1
+while read -r repo; do
+  name="$(basename "$repo")"
+  case "$name" in
+    *.github.io)
+      build_repo "$repo" "$1"
+    ;;
+    *)
+      build_repo "$repo" "$1/$name"
+    ;;
   esac
-  shift $(( OPTIND - 1 ))
 done
 
-site="$(basename "$1")"
 
-if [ -n "$dest_is_root" ]; then
-  dest=""
-else
-  dest="$site/"
-fi
-
-if [ -z "$site" ]; then
-  echo "Usage: build-site SITEDIR" >&2;
-  exit 1
-fi
-
-set -x
-
-if [ -f "$site/.nojekyll" ]; then
-  rsync -r "$site/" "$PAGES_DEPLOY_URL/$dest"
-else
-  (
-    cd "$site" &&
-    mkdir -p _site &&
-    docker run --label=jekyll --volume=$PWD:/srv/jekyll jekyll/builder jekyll build &&
-    rsync -r _site/ "$PAGES_DEPLOY_URL/$dest"
-  )
-fi

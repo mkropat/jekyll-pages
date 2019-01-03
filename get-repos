@@ -1,0 +1,65 @@
+#!/bin/bash
+
+set -euo pipefail
+
+clone_repo() {
+  (
+    cd "$repo_dir"
+    git clone -- "$1" >&2
+  )
+}
+
+switch_to_branch() {
+  (
+    cd "$1"
+    git fetch
+    if [[ $(git rev-parse HEAD) != $(git rev-parse "origin/$2") ]]; then
+      git checkout --quiet  "origin/$2"
+      git reset --hard --quiet HEAD
+      git clean -d --force --quiet
+      git submodule --quiet update --init
+    fi
+  )
+}
+
+fetch_api() {
+  curl --silent --user "$(cat ~/.github-creds)" -- "$1" 
+}
+
+if [[ $# -lt 1 ]]; then
+  echo "Usage: get-repos DEST" >&2;
+  exit 1
+fi
+
+repo_dir="$1"
+mkdir -p "$repo_dir"
+
+fetch_api "https://api.github.com/user/repos?type=owner&per_page=100" |
+  jq -r '.[] | ([.name, .branches_url, .git_url] | join(" "))' |
+  while read -r name branches_url git_url rest; do
+    if [[ -f "$repo_dir/.$name" ]]; then
+      continue
+    fi
+
+    branch="gh-pages"
+    case "$name" in
+      *.github.io)
+        branch="master"
+    esac
+
+    if [[ ! -d "$repo_dir/$name" ]]; then
+      list_branches_url=$(printf '%s\n' "$branches_url" | sed -E 's/\{.*\}//')
+      if fetch_api "$list_branches_url" |
+        jq -r '.[].name' |
+        grep -q "^$branch\$"; then
+        clone_repo "$git_url"
+      else
+        :> "$repo_dir/.$name"
+      fi
+    fi
+
+    if [[ -d "$repo_dir/$name" ]]; then
+      switch_to_branch "$repo_dir/$name"  "$branch"
+      printf '%s/%s\n' "$repo_dir" "$name"
+    fi
+  done

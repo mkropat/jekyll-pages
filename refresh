@@ -2,35 +2,13 @@
 
 set -euo pipefail
 
-switch_to_branch() {
-  (
-    cd "$d"
-    git fetch
-    if [[ $(git rev-parse HEAD) != $(git rev-parse "origin/$1") ]]; then
-      git checkout "origin/$1"
-      git reset --hard HEAD
-      git clean -d --force
-      git submodule update --init
-    fi
-  )
-}
+if [[ -z "${PAGES_DEPLOY_URL-}" ]]; then
+  echo 'Error: must set $PAGES_DEPLOY_URL' >&2
+  exit 1
+fi
 
-./check-for-repos
+set -x
 
-for d in *; do
-  if [[ ! -d "$d" ]]; then
-    continue
-  fi
+./get-repos ./repos | ./build-site ./site
 
-  case "$d" in
-    *.github.io)
-      switch_to_branch "master"
-      ./build-site -r "$d"
-    ;;
-    *)
-      switch_to_branch "gh-pages"
-      ./build-site "$d"
-    ;;
-  esac
-done
-
+rsync -r site/ "$PAGES_DEPLOY_URL"
