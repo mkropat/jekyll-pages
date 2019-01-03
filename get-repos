@@ -26,6 +26,17 @@ fetch_api() {
   curl --silent --user "$(cat ~/.github-creds)" -- "$1" 
 }
 
+fetch_all_pages() {
+  header_file="$(mktemp)"
+  curl --dump-header "$header_file" --silent --user "$(cat ~/.github-creds)" -- "$1" 
+  next_page="$(sed -ne 's/^Link:.*<\([^>]*\)>; rel="next".*/\1/p' "$header_file")"
+  rm -f -- "$header_file"
+
+  if [[ -n "$next_page" ]]; then
+    fetch_all_pages "$next_page"
+  fi
+}
+
 if [[ $# -lt 1 ]]; then
   echo "Usage: get-repos DEST" >&2;
   exit 1
@@ -34,7 +45,7 @@ fi
 repo_dir="$1"
 mkdir -p "$repo_dir"
 
-fetch_api "https://api.github.com/user/repos?type=owner&per_page=100" |
+fetch_all_pages "https://api.github.com/user/repos?type=owner" |
   jq -r '.[] | ([.name, .branches_url, .git_url] | join(" "))' |
   while read -r name branches_url git_url rest; do
     if [[ -f "$repo_dir/.$name" ]]; then
