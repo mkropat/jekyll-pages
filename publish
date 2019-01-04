@@ -10,8 +10,12 @@ if [[ -z "$dest" ]]; then
   exit 1
 fi
 
+script_dir="$(dirname "$0")"
+
 set -x
 
-./get-repos ./repos | ./build-site ./site
-
-rsync -r site/ "$dest"
+(
+  cd "$script_dir"
+  ./get-repos ./repos | ./build-site ./site
+  rsync -r site/ "$dest"
+)
