@@ -2,8 +2,11 @@
 
 set -euo pipefail
 
-if [[ -z "${PAGES_DEPLOY_URL-}" ]]; then
-  echo 'Error: must set $PAGES_DEPLOY_URL' >&2
+dest="${1:-${PAGES_DEPLOY_DEST-}}"
+if [[ -z "$dest" ]]; then
+  echo 'Usage: publish DEST'
+  echo
+  echo 'See the rsync(1) man page for valid DESTinations.'
   exit 1
 fi
 
@@ -11,4 +14,4 @@ set -x
 
 ./get-repos ./repos | ./build-site ./site
 
-rsync -r site/ "$PAGES_DEPLOY_URL"
+rsync -r site/ "$dest"
