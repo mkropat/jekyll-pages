@@ -8,7 +8,7 @@ The scripts are:
 
 - [`get-repos`](get-repos) – looks up all your repos using the API and clones/fetches the latest version
 - [`build-site`](build-site) – given a list of repos (piped from `get-repos`), run each [Jekyll][jekyll] build in a [Docker][docker] container
-- [`publish`](publish) – run the previous two scripts then `rsync` the resulting website to your server
+- [`publish`](publish) – run the previous two scripts then `rsync` the resulting website to your web server
 
 ## Getting Started
 
