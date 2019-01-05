@@ -4,7 +4,7 @@ set -euo pipefail
  
 build_repo() {
   if [[ -f "$1/.nojekyll" ]]; then
-    publish_dir "$1" "$2"
+    publish_dir "$1/" "$2"
   else
     (
       cd "$1"
