@@ -1,0 +1,5 @@
+#!/bin/bash
+
+docker build --file Dockerfile.get-repos --tag jekyll-pages/get-repos . >&2
+
+tar cP ~/.github-creds | docker run --interactive --volume "$(readlink --canonicalize -- "$1"):/opt/repos" jekyll-pages/get-repos /bin/sh -c "tar xPf -; cd /opt; ./get-repos $1"

@@ -15,7 +15,7 @@ The scripts are:
 ### Pre-Requisites
 
 - [Docker][docker-install]
-- `sudo apt install curl git jq rsync` / `sudo dnf install curl git jq rsync` / etc.
+- `sudo apt install rsync` / `sudo dnf install rsync` / etc.
 
 ### Configuration
 

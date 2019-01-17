@@ -16,6 +16,6 @@ set -x
 
 (
   cd "$script_dir"
-  ./get-repos ./repos | ./build-site ./site
+  ./get-repos.docker ./repos | ./build-site ./site
   rsync -r site/ "$dest"
 )
