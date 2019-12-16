@@ -9,7 +9,7 @@ build_repo() {
     (
       cd "$1"
       mkdir -p _site
-      docker run --label=jekyll --volume="$PWD:/srv/jekyll" jekyll/builder jekyll build
+      docker run --label=jekyll --rm --volume="$PWD:/srv/jekyll" jekyll/builder jekyll build
     )
     publish_dir "$1/_site/" "$2"
   fi
