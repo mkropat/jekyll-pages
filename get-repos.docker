@@ -4,6 +4,7 @@ docker build --file Dockerfile.get-repos --tag jekyll-pages/get-repos . >&2
 
 docker run \
   --rm \
-  --volume "$HOME/.github-creds:/root/.github-creds" \
+  --user "$UID:$GID" \
+  --volume "$HOME/.github-creds:/.github-creds" \
   --volume "$(readlink --canonicalize -- "$1"):/opt/repos" \
   jekyll-pages/get-repos
