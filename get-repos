@@ -61,8 +61,8 @@ repo_dir="$1"
 mkdir -p "$repo_dir"
 
 fetch_all_pages "https://api.github.com/user/repos?type=owner" |
-  jq -r '.[] | ([.name, .branches_url, .clone_url] | join(" "))' |
-  while read -r name branches_url clone_url rest; do
+  jq -r '.[] | ([.name, .branches_url, .clone_url, .default_branch] | join(" "))' |
+  while read -r name branches_url clone_url default_branch rest; do
     if [[ -n "$quick" && -f "$repo_dir/.$name" ]]; then
       continue
     fi
@@ -70,7 +70,7 @@ fetch_all_pages "https://api.github.com/user/repos?type=owner" |
     branch="gh-pages"
     case "$name" in
       *.github.io)
-        branch="master"
+        branch="$default_branch"
     esac
 
     if [[ ! -d "$repo_dir/$name" ]]; then
