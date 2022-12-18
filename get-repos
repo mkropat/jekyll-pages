@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -euo pipefail
 
@@ -23,12 +23,12 @@ switch_to_branch() {
 }
 
 fetch_api() {
-  curl --silent --user "$(cat ~/.github-creds)" -- "$1" 
+  curl --silent --user "$(cat ~/.github-creds)" -- "$1"
 }
 
 fetch_all_pages() {
   header_file="$(mktemp)"
-  curl --dump-header "$header_file" --silent --user "$(cat ~/.github-creds)" -- "$1" 
+  curl --dump-header "$header_file" --silent --user "$(cat ~/.github-creds)" -- "$1"
   next_page="$(sed -ne 's/^Link:.*<\([^>]*\)>; rel="next".*/\1/ip' "$header_file")"
   rm -f -- "$header_file"
 
@@ -41,7 +41,8 @@ quick=
 
 while getopts q opt; do
   case "$opt" in
-    q) quick=1
+    q) quick=1 ;;
+    *) echo "bad option: $opt" >&2; exit 1
   esac
 done
 shift $(( OPTIND - 1 ))
@@ -60,8 +61,8 @@ repo_dir="$1"
 mkdir -p "$repo_dir"
 
 fetch_all_pages "https://api.github.com/user/repos?type=owner" |
-  jq -r '.[] | ([.name, .branches_url, .git_url] | join(" "))' |
-  while read -r name branches_url git_url rest; do
+  jq -r '.[] | ([.name, .branches_url, .clone_url, .default_branch] | join(" "))' |
+  while read -r name branches_url clone_url default_branch rest; do
     if [[ -n "$quick" && -f "$repo_dir/.$name" ]]; then
       continue
     fi
@@ -69,7 +70,7 @@ fetch_all_pages "https://api.github.com/user/repos?type=owner" |
     branch="gh-pages"
     case "$name" in
       *.github.io)
-        branch="master"
+        branch="$default_branch"
     esac
 
     if [[ ! -d "$repo_dir/$name" ]]; then
@@ -78,7 +79,7 @@ fetch_all_pages "https://api.github.com/user/repos?type=owner" |
         jq -r '.[].name' |
         grep -q "^$branch\$"; then
         rm -f "$repo_dir/.$name"
-        clone_repo "$git_url"
+        clone_repo "$clone_url"
       else
         :> "$repo_dir/.$name"
       fi
