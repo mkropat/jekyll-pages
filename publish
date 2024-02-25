@@ -12,11 +12,8 @@ fi
 
 script_path=$(readlink --canonicalize "${BASH_SOURCE[0]}")
 script_dir=$(dirname -- "$script_path")
+cd "$script_dir"
 
 set -x
-
-(
-  cd "$script_dir"
-  ./get-repos.docker ./repos | ./build-site ./site
-  rsync -r site/ "$dest"
-)
+./get-repos.docker ./repos | ./build-site ./site
+rsync -r site/ "$dest"
