@@ -5,9 +5,12 @@ set -euo pipefail
 export DOCKER_BUILDKIT=1
 docker build --file Dockerfile.get-repos --tag jekyll-pages/get-repos . >&2
 
+repos_dir=$(readlink --canonicalize -- "$1")
+mkdir -p "$repos_dir"
+
 docker run \
   --rm \
   --user "$UID:$(id -g)" \
   --volume "$HOME/.github-creds:/.github-creds" \
-  --volume "$(readlink --canonicalize -- "$1"):/opt/repos" \
+  --volume "${repos_dir}:/opt/repos" \
   jekyll-pages/get-repos
