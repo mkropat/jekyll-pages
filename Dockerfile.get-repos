@@ -1,6 +1,6 @@
 FROM debian:stable
 
-RUN apt-get update && apt-get install -y --force-yes curl git jq
+RUN apt-get update && apt-get install -y --allow-downgrades curl git jq
 COPY get-repos /opt/
 
 VOLUME /opt/repos
